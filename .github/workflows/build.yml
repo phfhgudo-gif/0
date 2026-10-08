@@ -52,7 +52,7 @@ jobs:
           gradle-version: "8.1"
 
       - name: Build JAR
-        working-directory: $ {{ env.PROJECT_DIR }}
+        working-directory: $  {{ env.PROJECT_DIR }}
         shell: bash
         run: |
           chmod +x ./gradlew 2>/dev/null || true
@@ -64,7 +64,7 @@ jobs:
           fi
 
       - name: List build output
-        working-directory: $ {{ env.PROJECT_DIR }}
+        working-directory: $  {{ env.PROJECT_DIR }}
         shell: bash
         run: |
           echo "=== JAR files ==="
@@ -74,5 +74,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: autoparry-jar
-          path: $ {{ env.PROJECT_DIR }}/build/libs/*.jar
+          path: $  {{ env.PROJECT_DIR }}/build/libs/*.jar
           if-no-files-found: error
