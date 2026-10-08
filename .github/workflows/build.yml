@@ -31,26 +31,31 @@ jobs:
           find project -maxdepth 5 -type f | sort
 
       - name: Find Gradle project
+        shell: bash
         run: |
-          if [ -f "project/build.gradle" ]; then
-            echo "PROJECT_DIR=project" >> "$GITHUB_ENV"
-          elif [ -f "project/autoparry-src-structure/build.gradle" ]; then
-            echo "PROJECT_DIR=project/autoparry-src-structure" >> "$GITHUB_ENV"
-          else
-            echo "Cannot find build.gradle"
+          BUILD_FILE="$(find project -type f \( -name "build.gradle" -o -name "build.gradle.kts" \) -print -quit)"
+
+          if [ -z "$BUILD_FILE" ]; then
+            echo "Cannot find build.gradle or build.gradle.kts"
             find project -type f | sort
             exit 1
           fi
 
+          PROJECT_DIR="$(dirname "$BUILD_FILE")"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Found Gradle project: $PROJECT_DIR"
+          echo "Build file: $BUILD_FILE"
+
       - name: Setup Gradle
-        uses:  actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.1"
 
       - name: Build JAR
-        working-directory: $ {{ env.PROJECT_DIR }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        shell: bash
         run: |
-          chmod +x gradlew 2>/dev/null || true
+          chmod +x ./gradlew 2>/dev/null || true
 
           if [ -f "./gradlew" ]; then
             ./gradlew build
@@ -59,7 +64,8 @@ jobs:
           fi
 
       - name: List build output
-        working-directory: $ {{ env.PROJECT_DIR }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        shell: bash
         run: |
           echo "=== JAR files ==="
           find build/libs -type f -name "*.jar" -print
@@ -68,5 +74,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: autoparry-jar
-          path: "$ {{ env.PROJECT_DIR }}/build/libs/*.jar"
+          path: ${{ env.PROJECT_DIR }}/build/libs/*.jar
           if-no-files-found: error
